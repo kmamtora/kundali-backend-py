@@ -49,13 +49,12 @@ class User(Base, TimestampMixin):
     )
 
     # Relationships
-    # Note: These will be defined in subsequent batches as related models are created
-    # followers: Mapped[list["Follower"]] = relationship(...)
-    # following: Mapped[list["Follower"]] = relationship(...)
-    # messages: Mapped[list["Message"]] = relationship(...)
-    # pandit_profile: Mapped["PanditProfile"] = relationship(...)
-    # profile: Mapped["Profile"] = relationship(...)
-    # ratings: Mapped[list["Rating"]] = relationship(...)
+    followers: Mapped[list["Follower"]] = relationship("Follower", foreign_keys="Follower.following_id", back_populates="following")
+    following: Mapped[list["Follower"]] = relationship("Follower", foreign_keys="Follower.user_id", back_populates="follower")
+    # messages: Mapped[list["Message"]] = relationship(...) # Message model not verified yet
+    pandit_profile: Mapped["PanditProfile"] = relationship("PanditProfile", uselist=False, back_populates="user")
+    profile: Mapped["Profile"] = relationship("Profile", uselist=False, back_populates="user")
+    # ratings: Mapped[list["Rating"]] = relationship(...) 
     # voice_calls: Mapped[list["VoiceCall"]] = relationship(...)
     # wallet: Mapped[list["Wallet"]] = relationship(...)
-    # rate: Mapped["Rate"] = relationship(...)
+    rate: Mapped["Rate"] = relationship("Rate", uselist=False, back_populates="user")

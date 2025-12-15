@@ -26,4 +26,4 @@ class Rate(Base, TimestampMixin):
     is_active: Mapped[bool | None] = mapped_column(Boolean, default=True, nullable=True)
 
     # Relationships
-    user: Mapped["User"] = relationship()
+    user: Mapped["User"] = relationship("User", back_populates="rate")

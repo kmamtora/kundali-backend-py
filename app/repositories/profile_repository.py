@@ -15,6 +15,17 @@ class ProfileRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def update_profile(self, user_id: UUID, data: dict) -> Profile:
+        stmt = (
+            update(Profile)
+            .where(Profile.user_id == user_id)
+            .values(**data)
+            .returning(Profile)
+        )
+        result = await self.session.execute(stmt)
+        await self.session.commit()
+        return result.scalar_one()
+
     async def upsert_user_profile(self, user_id: UUID) -> Profile:
         """
         Upsert logic:

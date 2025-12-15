@@ -1,11 +1,12 @@
 from datetime import datetime
 from uuid import UUID
 
-from typing import Sequence
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models.user import User
+from app.models.follower import Follower
 
 
 class UserRepository:
@@ -53,3 +54,26 @@ class UserRepository:
         )
         await self.session.execute(stmt)
         await self.session.commit()
+
+    async def get_full_profile(self, user_id: UUID) -> User | None:
+        stmt = (
+            select(User)
+            .where(User.id == user_id)
+            .options(
+                selectinload(User.profile),
+                selectinload(User.pandit_profile),
+                selectinload(User.rate),
+                selectinload(User.followers) # To count strictly, usually we count in DB.
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def check_is_following(self, user_id: UUID, target_id: UUID) -> bool:
+        stmt = select(Follower).where(
+            Follower.user_id == user_id,
+            Follower.following_id == target_id,
+            Follower.is_active == True
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none() is not None

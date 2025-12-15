@@ -23,8 +23,8 @@ class Follower(Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
-    follower: Mapped["User"] = relationship("User", foreign_keys=[user_id])
-    following: Mapped["User"] = relationship("User", foreign_keys=[following_id])
+    follower: Mapped["User"] = relationship("User", foreign_keys=[user_id], back_populates="following")
+    following: Mapped["User"] = relationship("User", foreign_keys=[following_id], back_populates="followers")
 
     __table_args__ = (
         UniqueConstraint("user_id", "following_id", name="uq_follower_user_following"),

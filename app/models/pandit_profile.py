@@ -35,4 +35,4 @@ class PanditProfile(Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
-    user: Mapped["User"] = relationship()
+    user: Mapped["User"] = relationship("User", back_populates="pandit_profile")

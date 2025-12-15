@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
@@ -11,12 +11,14 @@ from app.core.settings import settings
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/token")  # Placeholder URL
+# Use HTTPBearer for simple "Bearer <token>" input in Swagger UI
+security = HTTPBearer()
 
 async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
     session: Annotated[AsyncSession, Depends(get_db)]
 ) -> User:
+    token = credentials.credentials
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -37,10 +39,7 @@ async def get_current_user(
     user = await user_repo.get_by_id(user_id)
     if user is None:
         raise credentials_exception
-    # Express `protect` middleware checks if user exists.
-    # It might also check `isActive`? 
-    # Express `disableAccount` updates `isActive=false`.
-    # Usually protected routes require active users.
+    
     if not user.is_active:
         raise HTTPException(status_code=400, detail="User is inactive")
         
