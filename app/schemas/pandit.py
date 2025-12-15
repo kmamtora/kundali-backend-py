@@ -25,3 +25,11 @@ class PanditListResponse(BaseModel):
     # So it returns a list of User objects which contain profile, panditProfile, etc.
     # We can reuse FullProfileResponse but valid it's a list.
     pass
+
+class PanditStatusUpdateRequest(BaseModel):
+    statusType: str  # "Call", "Chat", "Live"
+    statusValue: str
+
+class FollowPanditRequest(BaseModel):
+    panditId: UUID
+

@@ -14,6 +14,9 @@ def mock_pandit_service():
         service_instance = mock.return_value
         service_instance.get_all_pandits = AsyncMock()
         service_instance.update_pandit_profile = AsyncMock()
+        service_instance.update_status = AsyncMock()
+        service_instance.follow_pandit = AsyncMock()
+        service_instance.unfollow_pandit = AsyncMock()
         yield service_instance
 
 @pytest.fixture
@@ -83,3 +86,57 @@ async def test_update_pandit_profile(client: AsyncClient, mock_pandit_service):
     finally:
         if get_current_user in app.dependency_overrides:
             del app.dependency_overrides[get_current_user]
+
+@pytest.mark.asyncio
+async def test_update_pandit_status(client: AsyncClient, mock_pandit_service):
+    user_id = uuid4()
+    mock_user = User(id=user_id, mobile_no="+918888888888", is_active=True)
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+
+    payload = {"statusType": "Call", "statusValue": True}
+    
+    try:
+        response = await client.post("/api/v1/pandit/status", json=payload)
+        assert response.status_code == 200
+        assert response.json() == {"message": "Updated successfully"}
+        mock_pandit_service.update_status.assert_called_once_with(user_id, "Call", True)
+    finally:
+        if get_current_user in app.dependency_overrides:
+            del app.dependency_overrides[get_current_user]
+
+@pytest.mark.asyncio
+async def test_follow_pandit(client: AsyncClient, mock_pandit_service):
+    user_id = uuid4()
+    pandit_id = uuid4()
+    mock_user = User(id=user_id, mobile_no="+918888888888", is_active=True)
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+
+    payload = {"panditId": str(pandit_id)}
+    
+    try:
+        response = await client.post("/api/v1/pandit/follow", json=payload)
+        assert response.status_code == 200
+        assert response.json() == {"message": "Followed successfully"}
+        mock_pandit_service.follow_pandit.assert_called_once_with(user_id, pandit_id)
+    finally:
+        if get_current_user in app.dependency_overrides:
+            del app.dependency_overrides[get_current_user]
+
+@pytest.mark.asyncio
+async def test_unfollow_pandit(client: AsyncClient, mock_pandit_service):
+    user_id = uuid4()
+    pandit_id = uuid4()
+    mock_user = User(id=user_id, mobile_no="+918888888888", is_active=True)
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+
+    payload = {"panditId": str(pandit_id)}
+    
+    try:
+        response = await client.post("/api/v1/pandit/unfollow", json=payload)
+        assert response.status_code == 200
+        assert response.json() == {"message": "Unfollowed successfully"}
+        mock_pandit_service.unfollow_pandit.assert_called_once_with(user_id, pandit_id)
+    finally:
+        if get_current_user in app.dependency_overrides:
+            del app.dependency_overrides[get_current_user]
+

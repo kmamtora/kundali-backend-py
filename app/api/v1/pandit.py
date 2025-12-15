@@ -8,7 +8,7 @@ from app.core.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
 from app.schemas.profile import FullProfileResponse
-from app.schemas.pandit import PanditUpdateRequest
+from app.schemas.pandit import PanditUpdateRequest, PanditStatusUpdateRequest, FollowPanditRequest
 from app.services.pandit_service import PanditService
 from app.services.profile_service import ProfileService
 
@@ -59,3 +59,43 @@ async def update_pandit_profile(
     # Use current_user.id, ignoring path param 'id'
     updated = await pandit_service.update_pandit_profile(current_user.id, request)
     return updated
+
+@router.post("/status", status_code=status.HTTP_200_OK)
+async def update_pandit_status(
+    request: PanditStatusUpdateRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)]
+):
+    """
+    Update pandit status (Call/Chat/Live).
+    """
+    pandit_service = PanditService(session)
+    await pandit_service.update_status(current_user.id, request.statusType, request.statusValue)
+    return {"message": "Updated successfully"}
+
+@router.post("/follow", status_code=status.HTTP_200_OK)
+async def follow_pandit(
+    request: FollowPanditRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)]
+):
+    """
+    Follow a pandit.
+    """
+    pandit_service = PanditService(session)
+    await pandit_service.follow_pandit(current_user.id, request.panditId)
+    return {"message": "Followed successfully"}
+
+@router.post("/unfollow", status_code=status.HTTP_200_OK)
+async def unfollow_pandit(
+    request: FollowPanditRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_db)]
+):
+    """
+    Unfollow a pandit.
+    """
+    pandit_service = PanditService(session)
+    await pandit_service.unfollow_pandit(current_user.id, request.panditId)
+    return {"message": "Unfollowed successfully"}
+

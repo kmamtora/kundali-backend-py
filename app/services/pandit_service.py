@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.pandit_repository import PanditRepository
 from app.repositories.profile_repository import ProfileRepository
 from app.repositories.user_repository import UserRepository
+from app.repositories.follower_repository import FollowerRepository
 from app.schemas.profile import FullProfileResponse, ProfileUpdateRequest
 from app.schemas.pandit import PanditUpdateRequest
 from app.services.profile_service import ProfileService
@@ -16,6 +17,7 @@ class PanditService:
         self.pandit_repo = PanditRepository(session)
         self.profile_repo = ProfileRepository(session)
         self.user_repo = UserRepository(session) # Helper for full profile formatting
+        self.follower_repo = FollowerRepository(session)
 
     async def get_all_pandits(self, current_user_id: UUID) -> List[FullProfileResponse]:
         # Logic: fetch all, format like getFullProfileById
@@ -95,3 +97,17 @@ class PanditService:
 
         # Express returns "exist" which is the result of upserting panditProfile.
         return updated_pandit
+
+    async def update_status(self, user_id: UUID, status_type: str, status_value: str) -> None:
+        # Check simple validation if needed? Repository handles updates.
+        # Express logic cancels active calls if statusType is "Call".
+        await self.pandit_repo.update_pandit_status(user_id, status_type, status_value)
+        if status_type == "Call":
+            await self.pandit_repo.cancel_active_calls(user_id)
+
+    async def follow_pandit(self, follower_id: UUID, pandit_id: UUID) -> None:
+        await self.follower_repo.follow_user(follower_id, pandit_id)
+
+    async def unfollow_pandit(self, follower_id: UUID, pandit_id: UUID) -> None:
+        await self.follower_repo.unfollow_user(follower_id, pandit_id)
+
