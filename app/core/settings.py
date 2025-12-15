@@ -138,6 +138,21 @@ class Settings(BaseSettings):
         le=1.0,
         description="Trace sampler argument (for traceidratio)"
     )
+
+    # ============================================================================
+    # Twilio Settings
+    # ============================================================================
+    TWILIO_ACCOUNT_SID: str | None = Field(default=None, description="Twilio Account SID")
+    TWILIO_AUTH_TOKEN: str | None = Field(default=None, description="Twilio Auth Token")
+    TWILIO_FROM_NUMBER: str | None = Field(default=None, description="Twilio From Number")
+
+    # ============================================================================
+    # JWT Settings
+    # ============================================================================
+    JWT_SECRET_KEY: str = Field(default="changethis", description="JWT Secret Key")
+    JWT_ALGORITHM: str = Field(default="HS256", description="JWT Algorithm")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, description="Access token expiration in minutes")
+    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, description="Refresh token expiration in days")
     
     # ============================================================================
     # Logging Settings

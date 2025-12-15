@@ -138,15 +138,10 @@ Before answering, ensure:
 - No Express patterns remain
 - All routes are registered under `/api/v1`
 - Code is production‑ready and async‑safe
-- make sure to use async/await everywhere
-- make sure to use pydantic models for request and response
-- make sure to use sqlalchemy models for database access
-- make sure to use alembic for database migrations
-- make sure to use uvicorn for server
-- make sure you ask for help if you need it and before making any changes ask me for permission
 
 If any rule is violated, fix it before responding.
 
 ---
 
 ## Start Conversion
+

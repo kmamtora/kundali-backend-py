@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.v1 import health, tasks
+from app.api.v1 import health, tasks, auth
 from app.core.database import close_db, init_db
 from app.core.exceptions import (
     AppException,
@@ -344,7 +344,9 @@ def create_app() -> FastAPI:
     
     # API v1 endpoints
     # API v1 endpoints
+    # API v1 endpoints
     app.include_router(tasks.router, prefix=settings.API_V1_PREFIX)
+    app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
     
     # ========================================================================
     # Metrics Endpoint
