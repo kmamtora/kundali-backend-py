@@ -1,0 +1,220 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: enterprise-api-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: enterprise_api
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - enterprise-network
+    restart: unless-stopped
+
+  # ============================================================================
+  # Jaeger - Distributed Tracing
+  # ============================================================================
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: enterprise-api-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC receiver
+      - "4318:4318"    # OTLP HTTP receiver
+    networks:
+      - enterprise-network
+    restart: unless-stopped
+
+  # ============================================================================
+  # Redis Cache & Message Broker
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: enterprise-api-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - enterprise-network
+    restart: unless-stopped
+
+  # ============================================================================
+  # FastAPI Application
+  # ============================================================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: enterprise-api
+    environment:
+      # Application
+      APP_NAME: Enterprise FastAPI
+      DEBUG: "false"
+      ENVIRONMENT: development
+      API_V1_PREFIX: /api/v1
+      
+      # Database
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/enterprise_api
+      DB_POOL_SIZE: 20
+      DB_MAX_OVERFLOW: 10
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      CACHE_TTL: 3600
+      
+      # JWT
+      SECRET_KEY: dev-secret-key-change-in-production
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      
+      # CORS
+      CORS_ORIGINS: '["http://localhost:3000","http://localhost:8000"]'
+      
+      # Rate Limiting
+      RATE_LIMIT_ENABLED: "true"
+      RATE_LIMIT_PER_MINUTE: 60
+      
+      # OpenTelemetry
+      OTEL_ENABLED: "true"
+      OTEL_SERVICE_NAME: enterprise-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4317"
+      OTEL_EXPORTER_OTLP_INSECURE: "true"
+      
+      # Logging
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app/app
+      - ./alembic:/app/alembic
+      - ./scripts:/app/scripts
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - enterprise-network
+    restart: unless-stopped
+    command: >
+      sh -c "
+        alembic upgrade head &&
+        uvicorn app.cmd.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+  # ============================================================================
+  # Celery Worker
+  # ============================================================================
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: enterprise-api-celery-worker
+    environment:
+      # Application
+      APP_NAME: Enterprise FastAPI
+      DEBUG: "false"
+      ENVIRONMENT: development
+      
+      # Database
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/enterprise_api
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      
+      # JWT
+      SECRET_KEY: dev-secret-key-change-in-production
+      
+      # Logging
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - enterprise-network
+    restart: unless-stopped
+    command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=4
+
+  # ============================================================================
+  # Celery Beat Scheduler
+  # ============================================================================
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: enterprise-api-celery-beat
+    environment:
+      # Application
+      APP_NAME: Enterprise FastAPI
+      DEBUG: "false"
+      ENVIRONMENT: development
+      
+      # Database
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/enterprise_api
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      
+      # JWT
+      SECRET_KEY: dev-secret-key-change-in-production
+      
+      # Logging
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - enterprise-network
+    restart: unless-stopped
+    command: celery -A app.tasks.celery_app beat --loglevel=info
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  enterprise-network:
+    driver: bridge
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

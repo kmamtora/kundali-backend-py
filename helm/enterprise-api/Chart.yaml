@@ -1,0 +1,17 @@
+apiVersion: v2
+name: enterprise-api
+description: A Helm chart for Enterprise FastAPI application
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - fastapi
+  - api
+  - python
+  - enterprise
+home: https://github.com/your-org/enterprise-api
+sources:
+  - https://github.com/your-org/enterprise-api
+maintainers:
+  - name: Platform Team
+    email: platform@example.com

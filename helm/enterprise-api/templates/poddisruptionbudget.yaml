@@ -1,0 +1,29 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "enterprise-api.fullname" . }}
+  labels:
+    {{- include "enterprise-api.labels" . | nindent 4 }}
+    component: api
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.api.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "enterprise-api.selectorLabels" . | nindent 6 }}
+      component: api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "enterprise-api.fullname" . }}-worker
+  labels:
+    {{- include "enterprise-api.labels" . | nindent 4 }}
+    component: worker
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.worker.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "enterprise-api.selectorLabels" . | nindent 6 }}
+      component: worker
+{{- end }}

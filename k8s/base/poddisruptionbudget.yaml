@@ -1,0 +1,27 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: enterprise-api
+  labels:
+    app: enterprise-api
+    component: api
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: enterprise-api
+      component: api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: enterprise-api-worker
+  labels:
+    app: enterprise-api
+    component: worker
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: enterprise-api
+      component: worker

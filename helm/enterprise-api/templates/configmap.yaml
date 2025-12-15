@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "enterprise-api.fullname" . }}-config
+  labels:
+    {{- include "enterprise-api.labels" . | nindent 4 }}
+data:
+  # Application Settings
+  APP_NAME: {{ .Values.config.appName | quote }}
+  APP_VERSION: {{ .Values.config.appVersion | quote }}
+  DEBUG: {{ .Values.config.debug | quote }}
+  ENVIRONMENT: {{ .Values.config.environment | quote }}
+  API_V1_PREFIX: {{ .Values.config.apiV1Prefix | quote }}
+  
+  # Database Settings
+  DB_POOL_SIZE: {{ .Values.config.database.poolSize | quote }}
+  DB_MAX_OVERFLOW: {{ .Values.config.database.maxOverflow | quote }}
+  DB_POOL_TIMEOUT: {{ .Values.config.database.poolTimeout | quote }}
+  DB_POOL_RECYCLE: {{ .Values.config.database.poolRecycle | quote }}
+  DB_ECHO: {{ .Values.config.database.echo | quote }}
+  
+  # Redis Settings
+  REDIS_POOL_SIZE: {{ .Values.config.redis.poolSize | quote }}
+  CACHE_TTL: {{ .Values.config.redis.cacheTTL | quote }}
+  SESSION_TTL: {{ .Values.config.redis.sessionTTL | quote }}
+  
+  # JWT Settings
+  JWT_ALGORITHM: {{ .Values.config.jwt.algorithm | quote }}
+  ACCESS_TOKEN_EXPIRE_MINUTES: {{ .Values.config.jwt.accessTokenExpireMinutes | quote }}
+  REFRESH_TOKEN_EXPIRE_DAYS: {{ .Values.config.jwt.refreshTokenExpireDays | quote }}
+  TOKEN_URL: {{ .Values.config.jwt.tokenUrl | quote }}
+  BCRYPT_COST_FACTOR: {{ .Values.config.jwt.bcryptCostFactor | quote }}
+  
+  # CORS Settings
+  CORS_ORIGINS: {{ .Values.config.cors.origins | quote }}
+  CORS_ALLOW_CREDENTIALS: {{ .Values.config.cors.allowCredentials | quote }}
+  CORS_ALLOW_METHODS: {{ .Values.config.cors.allowMethods | quote }}
+  CORS_ALLOW_HEADERS: {{ .Values.config.cors.allowHeaders | quote }}
+  CORS_MAX_AGE: {{ .Values.config.cors.maxAge | quote }}
+  
+  # Rate Limiting Settings
+  RATE_LIMIT_ENABLED: {{ .Values.config.rateLimit.enabled | quote }}
+  RATE_LIMIT_PER_MINUTE: {{ .Values.config.rateLimit.perMinute | quote }}
+  RATE_LIMIT_PER_HOUR: {{ .Values.config.rateLimit.perHour | quote }}
+  
+  # Celery Settings
+  CELERY_TASK_SERIALIZER: {{ .Values.config.celery.taskSerializer | quote }}
+  CELERY_RESULT_SERIALIZER: {{ .Values.config.celery.resultSerializer | quote }}
+  CELERY_ACCEPT_CONTENT: {{ .Values.config.celery.acceptContent | quote }}
+  CELERY_TIMEZONE: {{ .Values.config.celery.timezone | quote }}
+  CELERY_TASK_TIME_LIMIT: {{ .Values.config.celery.taskTimeLimit | quote }}
+  CELERY_TASK_SOFT_TIME_LIMIT: {{ .Values.config.celery.taskSoftTimeLimit | quote }}
+  
+  # OpenTelemetry Settings
+  OTEL_ENABLED: {{ .Values.config.otel.enabled | quote }}
+  OTEL_SERVICE_NAME: {{ .Values.config.otel.serviceName | quote }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.config.otel.exporterEndpoint | quote }}
+  OTEL_EXPORTER_OTLP_INSECURE: {{ .Values.config.otel.exporterInsecure | quote }}
+  OTEL_TRACES_SAMPLER: {{ .Values.config.otel.tracesSampler | quote }}
+  OTEL_TRACES_SAMPLER_ARG: {{ .Values.config.otel.tracesSamplerArg | quote }}
+  
+  # Logging Settings
+  LOG_LEVEL: {{ .Values.config.logging.level | quote }}
+  LOG_FORMAT: {{ .Values.config.logging.format | quote }}
+  
+  # Metrics Settings
+  METRICS_ENABLED: {{ .Values.config.metrics.enabled | quote }}
+  METRICS_ENDPOINT: {{ .Values.config.metrics.endpoint | quote }}
+  
+  # Health Check Settings
+  HEALTH_CHECK_ENABLED: {{ .Values.config.healthCheck.enabled | quote }}
+  HEALTH_CHECK_PATH_LIVE: {{ .Values.config.healthCheck.pathLive | quote }}
+  HEALTH_CHECK_PATH_READY: {{ .Values.config.healthCheck.pathReady | quote }}
+  
+  # API Documentation Settings
+  DOCS_ENABLED: {{ .Values.config.docs.enabled | quote }}
+  DOCS_URL: {{ .Values.config.docs.docsUrl | quote }}
+  REDOC_URL: {{ .Values.config.docs.redocUrl | quote }}
+  OPENAPI_URL: {{ .Values.config.docs.openapiUrl | quote }}
+  
+  # Security Settings
+  ALLOWED_HOSTS: {{ .Values.config.security.allowedHosts | quote }}
+  TRUSTED_PROXIES: {{ .Values.config.security.trustedProxies | quote }}
+  SANITIZE_INPUTS: {{ .Values.config.security.sanitizeInputs | quote }}
+  MAX_REQUEST_SIZE: {{ .Values.config.security.maxRequestSize | quote }}
+  
+  # Pagination Settings
+  DEFAULT_PAGE_SIZE: {{ .Values.config.pagination.defaultPageSize | quote }}
+  MAX_PAGE_SIZE: {{ .Values.config.pagination.maxPageSize | quote }}

@@ -1,0 +1,105 @@
+# Production environment values
+global:
+  environment: production
+
+image:
+  tag: "v1.0.0"
+  pullPolicy: Always
+
+api:
+  replicaCount: 3
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+worker:
+  replicaCount: 3
+  concurrency: 8
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+beat:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+ingress:
+  enabled: true
+  hosts:
+    - host: api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: enterprise-api-prod-tls
+      hosts:
+        - api.example.com
+
+config:
+  debug: false
+  environment: "production"
+  database:
+    poolSize: 30
+    maxOverflow: 20
+    echo: false
+  rateLimit:
+    perMinute: 120
+    perHour: 5000
+  logging:
+    level: "WARNING"
+  otel:
+    tracesSamplerArg: 1.0
+  docs:
+    enabled: false
+
+podDisruptionBudget:
+  enabled: true
+  api:
+    minAvailable: 2
+  worker:
+    minAvailable: 2
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+  labels:
+    prometheus: kube-prometheus
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - enterprise-api
+        topologyKey: kubernetes.io/hostname
